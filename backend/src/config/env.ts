@@ -15,6 +15,12 @@ export const env = {
 
   otpExpiresInMinutes: Number(process.env.OTP_EXPIRES_IN_MINUTES ?? 10),
   otpMaxAttemps: Number(process.env.OTP_MAX_ATTEMPTS ?? 5),
-  otpResentCooldownSeconds: Number(process.env.OTP_RESEND_COOLDOWN_SECONDS ?? 60)
+  otpResentCooldownSeconds: Number(process.env.OTP_RESEND_COOLDOWN_SECONDS ?? 60),
+
+  smtpHost: process.env.SMTP_HOST ?? "",
+  smtpPort: Number(process.env.SMTP_PORT ?? 587),
+  smtpUser: process.env.SMTP_USER ?? "",
+  smtpPassword: process.env.SMTP_PASSWORD ?? "",
+  emailFrom: process.env.EMAIL_FROM ?? "",
 
 }
