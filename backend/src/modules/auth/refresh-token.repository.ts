@@ -27,7 +27,7 @@ export class RefreshTokenRepository {
       revokedAt: null,
       expiresAt: { $gt: new Date()}
     }, {
-      $set: { revoked: new Date()}
+      $set: { revokedAt: new Date()}
     }).exec()
 
     return result.modifiedCount === 1

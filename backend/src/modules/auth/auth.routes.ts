@@ -30,4 +30,10 @@ authRouter.post(
   authController.refrshToken
 )
 
+authRouter.post(
+  '/logout',
+  validate(refreshTokenSchema),
+  authController.logout
+)
+
 export default authRouter

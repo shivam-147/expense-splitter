@@ -1,0 +1,35 @@
+info:
+  name: /auth/login
+  type: http
+  seq: 1
+
+http:
+  method: post
+  url: "{{base_url}}/auth/login"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "email": "{{email}}",
+        "password": "{{pass}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const access_token = res.body.data.tokens.accessToken
+        const refresh_token = res.body.data.tokens.refreshToken
+
+        bru.setEnvVar("access_token","Bearer " + access_token)
+        bru.setEnvVar("refresh_token", refresh_token)
+
+settings:
+  encodeUrl: false
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

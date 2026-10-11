@@ -1,0 +1,24 @@
+info:
+  name: /auth/refresh-token
+  type: http
+  seq: 1
+
+http:
+  method: post
+  url: "{{base_url}}auth/refresh-token"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "refreshToken": "{{refresh_token}}"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: false
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

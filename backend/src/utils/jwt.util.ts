@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import { env } from '../config/env'
 import type { SignOptions } from 'jsonwebtoken';
+import { randomUUID } from 'node:crypto';
 
 interface TokenPayload {
   userId: string;
@@ -25,7 +26,8 @@ export function generateRefreshToken(
   return jwt.sign(payload, env.jwtRefreshSecret, {
     expiresIn: env.jwtRefreshExpiresIn as SignOptions["expiresIn"],
     issuer: 'expense-splitter',
-    subject: payload.userId
+    subject: payload.userId,
+    jwtid: randomUUID()
   })
 }
 

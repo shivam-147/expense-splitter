@@ -2,11 +2,15 @@ import 'express'
 
 declare global {
   namespace Express {
+    interface UserContext {
+      userId: string;
+      email: string;
+    }
+
     interface Request {
-      requestId: string;
-      user?: {
-        id: string;
-      };
+      user?: UserContext
     }
   }
 }
+
+export {}

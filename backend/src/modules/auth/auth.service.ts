@@ -50,7 +50,7 @@ export class AuthService {
     const otpHash = await hashOtp(otp)
 
     await this.authRepository.createOtp({
-      _id: `otp_${ulid}`,
+      _id: `otp_${ulid()}`,
       email: user.email,
       purpose: 'EMAIL_VERIFICATION',
       otpHash,
@@ -78,7 +78,7 @@ export class AuthService {
       email: user.email,
       message: MESSAGE.EMAIL_VERIFICATION_OTP_SEND_SUCCESS
     }
-    }
+  }
 
   async verifyEmailOtp(input: VerifyOtpInput) {
     const user = await this.userRepository.findByEmail(input.email)
@@ -241,7 +241,6 @@ export class AuthService {
 
     if (
       !payload.exp ||
-      !payload.userId ||
       !payload.userId
     ) {
       throw new AppError({
@@ -260,6 +259,8 @@ export class AuthService {
         statusCode: HTTP_STATUS.UNAUTHORIZED
       })
     }
+
+
 
     const user = await this.userRepository.findById(payload.userId)
 
@@ -312,4 +313,44 @@ export class AuthService {
       }
     }
   }
+
+
+  async logout(input: RefreshTokenInput) {
+    let payload: ReturnType<typeof verifyRefreshToken>
+
+    try {
+      payload = verifyRefreshToken(input.refreshToken)
+    } catch {
+      throw new AppError({
+        code: ERROR_CODE.INVALID_REFRESH_TOKEN,
+        message: MESSAGE.INVALID_REFRESH_TOKEN,
+        statusCode: HTTP_STATUS.UNAUTHORIZED
+      })
+    }
+
+    const storedToken = await this.refreshTokenRepository.findActiveByHash(hashToken(input.refreshToken))
+
+    if (!storedToken || storedToken.userId !== payload.userId) {
+      throw new AppError({
+        code: ERROR_CODE.INVALID_REFRESH_TOKEN,
+        message: MESSAGE.INVALID_REFRESH_TOKEN,
+        statusCode: HTTP_STATUS.UNAUTHORIZED
+      })
+    }
+
+    const revoked = await this.refreshTokenRepository.revoke(storedToken._id)
+
+    if (!revoked) {
+      throw new AppError({
+        code: ERROR_CODE.INVALID_REFRESH_TOKEN,
+        message: MESSAGE.INVALID_REFRESH_TOKEN,
+        statusCode: HTTP_STATUS.UNAUTHORIZED
+      })
+    }
+
+    return {
+      message: MESSAGE.LOGOUT
+    }
+  }
+
 }

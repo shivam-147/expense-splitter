@@ -66,4 +66,19 @@ export class AuthController {
       next(error)
     }
   }
+
+  logout = async(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const input = req.body as RefreshTokenInput
+      const result = await this.authService.logout(input)
+
+      sendSuccess(res, result, HTTP_STATUS.OK)
+    } catch (error) {
+      next(error)
+    }
+  }
 }

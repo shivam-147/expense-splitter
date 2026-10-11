@@ -6,7 +6,7 @@ export interface RefreshToken {
   userId: string;
   tokenHash: string;
   expiresAt: Date;
-  revotedAt: Date | null;
+  revokedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,7 +31,7 @@ const refreshTokenSchema = new Schema<RefreshToken>({
     type: Date,
     required: true,
   },
-  revotedAt: {
+  revokedAt: {
     type: Date,
     default: null,
   }
