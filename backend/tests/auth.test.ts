@@ -6,11 +6,14 @@ import { app } from "../src/app";
 import { UserModel } from "../src/modules/users/user.model";
 import { hashPassword } from "../src/utils/password.util";
 import { vi } from "vitest";
+import { OtpModel } from "../src/modules/auth/otp.model";
 
-vi.mock("../src/modules/notifications/email.service", () => {
-  EmailService: class {
-    async sendOtp() {
-      return undefined
+vi.mock('../src/modules/notifications/email.service', () => {
+  return {
+    EmailService: class EmailServiceMock {
+      async sendOtp(): Promise<void> {
+        return;
+      }
     }
   }
 })
@@ -46,16 +49,31 @@ describe('Authentication integration test', () => {
 
 
   it("should reject registration with an already verified email", async () => {
+
+    const email = 'new-test-user@yopmail.com'
+
     const response = await request(app)
       .post("/api/v1/auth/register")
       .send({
-        name: "Test User",
-        email: "test-user@yopmail.com",
-        password: "SecurePass123"
+        name: "New Test User",
+        email,
+        password: "Secure@123"
       })
 
-    expect(response.status).toBe(409)
-    expect(response.body.success).toBe(false)
+    expect(response.status).toBe(201)
+    expect(response.body.success).toBe(true)
+    expect(response.body.data.email).toBe(email)
+    expect(response.body.data.userId).toBeTruthy()
+
+    const otpRecord = await OtpModel.findOne({
+      email,
+      purpose: 'EMAIL_VERIFICATION'
+    }).select("+otpHash")
+
+    expect(otpRecord).not.toBeNull()
+    expect(otpRecord?.otpHash).toBeTruthy()
+    expect(otpRecord?.expiresAt.getTime()).toBeGreaterThan(Date.now())
+
   })
 
   it("should reject registration with invalid input", async () => {
@@ -69,6 +87,21 @@ describe('Authentication integration test', () => {
 
     expect(response.status).toBe(400)
     expect(response.body.success).toBe(false)
+  })
+
+  it('should register a new user and create an email verification OTP', async () => {
+    const response = await request(app)
+      .post('/api/v1/auth/register')
+      .send({
+        name: "New Test User",
+        email: "new-test-user@yopmail.com",
+        password: "Secure@123"
+      })
+
+    expect(response.status).toBe(201)
+    expect(response.body.success).toBe(true)
+    expect(response.body.data.email).toBe('new-test-user@yopmail.com')
+    expect(response.body.data.userId).toBeTruthy()
   })
 
   it("should reject an incorrect password", async () => {
