@@ -50,3 +50,37 @@ export const resendOtpSchema = z.object({
 export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required')
 })
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email("Please provide a valid email address")
+})
+
+export const verifyResetOtpSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email("Please provide a valid email address"),
+  otp: z
+    .string()
+    .regex(/^\d{6}$/, "OTP must be exactly 6 digits")
+})
+
+export const resetPasswordSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email("Please provide a valid email address"),
+  otp: z
+    .string()
+    .regex(/^\d{6}$/, "OTP must be exactly 6 digits"),
+  newPassword: z
+    .string()
+    .min(8, "Password must be at least 8 characters long")
+    .max(128, "Password must not be exceed 128 characters")
+})
