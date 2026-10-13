@@ -11,7 +11,9 @@ export const MESSAGE = {
   EMAIL_NOT_VERIFIED: "Please verify your email before loggin in",
   INVALID_REFRESH_TOKEN: "Refrsh token is invalid, expired or revoked",
   INVALID_ACCESS_TOKEN: "Access token is invalid or expired",
+  EMAIL_VERIFICATION_PENDING: "Email verification is pending. Please verify your email or request a new OTP.",
 
+  OTP_RESEND_COOLDOWN: "Please wait before requesting another OTP",
 
   USER_NOT_FOUND: "User does not exists",
   ACCOUNT_NOT_ACTIVE: "Your account is not active",

@@ -14,7 +14,7 @@ http:
     data: |-
       {
         "email": "{{email}}",
-        "otp": "482843"
+        "otp": "746614"
       }
   auth: inherit
 

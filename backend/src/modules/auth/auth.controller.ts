@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { HTTP_STATUS } from "../../constants/http-status.constants";
 import { AuthService } from "./auth.service";
-import type { LoginInput, RefreshTokenInput, RegisterInput, VerifyOtpInput } from "./auth.types";
+import type { LoginInput, RefreshTokenInput, RegisterInput, ResendOtpInput, VerifyOtpInput } from "./auth.types";
 import { sendSuccess } from "../../utils/response.util";
 import { send } from "process";
 
@@ -18,6 +18,20 @@ export class AuthController {
       const result = await this.authService.register(input)
 
       sendSuccess(res, result, HTTP_STATUS.CREATED)
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  resendOtp = async(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const input = req.body as ResendOtpInput
+      const result = await this.authService.resendOtp(input)
+      sendSuccess(res, result, HTTP_STATUS.OK)
     } catch (error) {
       next(error)
     }

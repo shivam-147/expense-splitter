@@ -7,6 +7,6 @@ variables:
   - name: refresh_token
     value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c3JfMDFNNEs5R1NHODNKSDYxQlY3RVRFRDYwUDAiLCJlbWFpbCI6InNoaXZhbS50ZXN0MkB5b3BtYWlsLmNvbSIsImlhdCI6MTc5MTcwNTExOSwiZXhwIjoxNzkyMzA5OTE5LCJpc3MiOiJleHBlbnNlLXNwbGl0dGVyIiwic3ViIjoidXNyXzAxTTRLOUdTRzgzSkg2MUJWN0VURUQ2MFAwIn0.Afhh0yxUK-ipJqCh0G4I41oBDmDZnfkXK435TI7q4ew
   - name: email
-    value: shivam.test2@yopmail.com
+    value: shivam.test3@yopmail.com
   - name: pass
     value: Secure@123

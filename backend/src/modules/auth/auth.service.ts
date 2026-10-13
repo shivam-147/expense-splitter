@@ -6,7 +6,7 @@ import { AuthRepository } from "./auth.repository";
 import { EmailService } from "../notifications/email.service";
 import { hashPassword, verifyPassword } from "../../utils/password.util";
 import { generateOtp, hashOtp } from "../../utils/otp.util";
-import type { LoginInput, RegisterInput, VerifyOtpInput, RefreshTokenInput } from "./auth.types";
+import type { LoginInput, RegisterInput, VerifyOtpInput, RefreshTokenInput, ResendOtpInput } from "./auth.types";
 import { ERROR_CODE } from "../../constants/error-code.contants";
 import { MESSAGE } from "../../constants/message.constants";
 import { HTTP_STATUS } from "../../constants/http-status.constants";
@@ -32,6 +32,14 @@ export class AuthService {
         message: MESSAGE.EMAIL_ALREADY_EXISTS,
         statusCode: HTTP_STATUS.CONFLICT,
         details: []
+      })
+    }
+
+    if (user && !user.emailVerified) {
+      throw new AppError({
+        code: ERROR_CODE.EMAIL_VERIFICATION_PENDING,
+        message: MESSAGE.EMAIL_VERIFICATION_PENDING,
+        statusCode: HTTP_STATUS.CONFLICT
       })
     }
 
@@ -73,6 +81,86 @@ export class AuthService {
       })
     }
 
+    return {
+      userId: user._id,
+      email: user.email,
+      message: MESSAGE.EMAIL_VERIFICATION_OTP_SEND_SUCCESS
+    }
+  }
+
+  async resendOtp(input: ResendOtpInput) {
+    const user = await this.userRepository.findByEmail(input.email)
+
+    if (!user) {
+      throw new AppError({
+        code: ERROR_CODE.USER_NOT_FOUND,
+        message: MESSAGE.USER_NOT_FOUND,
+        statusCode: HTTP_STATUS.NOT_FOUND
+      })
+    }
+
+    if (user.emailVerified) {
+      throw new AppError({
+        code: ERROR_CODE.EMAIL_ALREADY_EXISTS,
+        message: MESSAGE.EMAIL_ALREADY_EXISTS,
+        statusCode: HTTP_STATUS.CONFLICT
+      })
+    }
+
+    const latestOtp = await this.authRepository.findLatestOtp(
+      user.email,
+      'EMAIL_VERIFICATION'
+    )
+
+    if (latestOtp) {
+      const cooldownMs = env.otpResentCooldownSeconds * 1000
+      const nextAllowedAt = latestOtp.createdAt.getTime() + cooldownMs
+      const remainingMs = nextAllowedAt - Date.now()
+
+      if (remainingMs > 0) {
+        throw new AppError({
+          code: ERROR_CODE.OTP_RESEND_COOLDOWN,
+          message: MESSAGE.OTP_RESEND_COOLDOWN,
+          statusCode: HTTP_STATUS.TOO_MANY_REQUESTS
+        })
+      }
+    }
+
+    await this.authRepository.deletePendingOtps(user.email, 'EMAIL_VERIFICATION')
+
+    const otp = generateOtp()
+    const otpHash = await hashOtp(otp)
+
+    await this.authRepository.createOtp({
+      _id: `otp_${ulid()}`,
+      email: user.email,
+      purpose: 'EMAIL_VERIFICATION',
+      otpHash,
+      expiresAt: new Date(
+        Date.now() + env.otpExpiresInMinutes * 60 * 1000
+      ),
+      maxAttempts: env.otpMaxAttemps
+    })
+
+    try {
+      await this.emailService.sendOtp({
+        to: user.email,
+        name: user.name,
+        otp
+      })
+    } catch {
+      await this.authRepository.deletePendingOtps(
+        user.email,
+        'EMAIL_VERIFICATION'
+      )
+
+      throw new AppError({
+        code: ERROR_CODE.EMAIL_DELIVERY_FAILED,
+        message: MESSAGE.EMAIL_VERIFICATION_OTP_SEND_FAILED,
+        statusCode: HTTP_STATUS.SERVICE_UNAVAILABLE
+      })
+
+    }
     return {
       userId: user._id,
       email: user.email,
